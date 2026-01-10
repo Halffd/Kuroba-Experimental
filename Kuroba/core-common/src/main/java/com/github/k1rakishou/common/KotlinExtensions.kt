@@ -1882,3 +1882,14 @@ fun Float.quantize(precision: Float): Float {
 
   return (adjustedValue / precision).toInt() * precision
 }
+
+inline fun <T, R> Iterable<T>.mapNotNullToSet(transform: (T) -> R?): Set<R> {
+  val destination = mutableSetOf<R>()
+  for (element in this) {
+    val result = transform(element)
+    if (result != null) {
+      destination.add(result)
+    }
+  }
+  return destination
+}
