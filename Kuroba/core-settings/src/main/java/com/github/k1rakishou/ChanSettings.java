@@ -449,6 +449,8 @@ public class ChanSettings {
     public static BooleanSetting markCrossThreadQuotesOnScrollbar;
     public static BooleanSetting markDeletedPostsOnScrollbar;
     public static BooleanSetting markHotPostsOnScrollbar;
+    public static BooleanSetting threadedRepliesEnabled;
+    public static IntegerSetting threadedRepliesMaxDepth;
     public static BooleanSetting globalNsfwMode;
     public static BooleanSetting api33NotificationPermissionRequested;
     //endregion
@@ -736,6 +738,10 @@ public class ChanSettings {
         drawerDeleteNavHistoryWhenBookmarkDeleted = new BooleanSetting(provider, "drawer_delete_nav_history_when_bookmark_deleted", false);
         globalNsfwMode = new BooleanSetting(provider, "global_nsfw_mode", false);
         api33NotificationPermissionRequested = new BooleanSetting(provider, "api33_notification_permission_requested", false);
+
+        // Threaded replies
+        threadedRepliesEnabled = new BooleanSetting(provider, "threaded_replies_enabled", false);
+        threadedRepliesMaxDepth = new IntegerSetting(provider, "threaded_replies_max_depth", 10);
     }
 
     public static int mediaViewerOffscreenPagesCount() {
@@ -844,6 +850,6 @@ public class ChanSettings {
     }
 
     public static IntRange supportedFontSizes() {
-        return new IntRange(10, 20);
+        return new IntRange(8, 32);
     }
 }

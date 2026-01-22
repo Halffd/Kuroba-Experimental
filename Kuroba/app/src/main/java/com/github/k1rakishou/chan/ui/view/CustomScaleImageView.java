@@ -62,8 +62,8 @@ public class CustomScaleImageView extends SubsamplingScaleImageView {
             public void onReady() {
                 float scale = Math.min(getWidth() / (float) getSWidth(), getHeight() / (float) getSHeight());
 
-                if (getMaxScale() < scale * 2f) {
-                    setMaxScale(scale * 2f);
+                if (getMaxScale() < scale * 8f) {
+                    setMaxScale(scale * 8f);
                 }
 
                 setMinimumScaleType(SCALE_TYPE_CUSTOM);
