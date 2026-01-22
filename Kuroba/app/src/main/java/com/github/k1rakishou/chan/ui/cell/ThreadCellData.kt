@@ -9,6 +9,7 @@ import com.github.k1rakishou.chan.core.manager.PostFilterManager
 import com.github.k1rakishou.chan.core.manager.PostHideManager
 import com.github.k1rakishou.chan.core.manager.SavedReplyManager
 import com.github.k1rakishou.chan.ui.adapter.PostsFilter
+import com.github.k1rakishou.chan.ui.cell.ThreadedPostOrganizer
 import com.github.k1rakishou.chan.utils.AppModuleAndroidUtils
 import com.github.k1rakishou.chan.utils.BackgroundUtils
 import com.github.k1rakishou.common.bidirectionalSequenceIndexed
@@ -41,6 +42,9 @@ class ThreadCellData(
 ): Iterable<ThreadCellData.PostCellDataLazy> {
   private val postCellDataLazyList: MutableList<PostCellDataLazy> = mutableListWithCap(64)
   private val coroutineScope = KurobaCoroutineScope()
+
+  // Map to store reply levels for each post when threaded replies are enabled
+  private var replyLevelMap: Map<com.github.k1rakishou.model.data.descriptor.PostDescriptor, Int> = emptyMap()
 
   private val chanThreadViewableInfoManager: ChanThreadViewableInfoManager
     get() = _chanThreadViewableInfoManager.get()
@@ -158,7 +162,32 @@ class ThreadCellData(
     this.postCellCallback = postCellCallback
     this.currentTheme = theme
 
-    val postDescriptors = postIndexedList.map { postIndexed ->
+    // Organize posts based on threaded replies setting
+    val organizedPostIndexedList = if (ChanSettings.threadedRepliesEnabled.get()) {
+      // Create a ThreadedPostOrganizer and organize the posts
+      val organizer = ThreadedPostOrganizer()
+      val posts = postIndexedList.map { it.chanPost }
+      val organizedPostsWithLevels = organizer.organizePosts(posts)
+
+      // Create a map of post descriptors to their reply levels
+      val replyLevelMap = organizedPostsWithLevels.associate { postWithLevel ->
+        postWithLevel.post.postDescriptor to postWithLevel.level
+      }
+
+      // Store the reply level map in the instance for use in PostCellData creation
+      this.replyLevelMap = replyLevelMap
+
+      // Return the posts in the new order with their levels
+      organizedPostsWithLevels.mapIndexed { index, postWithLevel ->
+        PostIndexed(postWithLevel.post, index)
+      }
+    } else {
+      // Clear the reply level map when threading is disabled
+      this.replyLevelMap = emptyMap()
+      postIndexedList
+    }
+
+    val postDescriptors = organizedPostIndexedList.map { postIndexed ->
       postIndexed.chanPost.postDescriptor
     }
 
@@ -167,7 +196,7 @@ class ThreadCellData(
         postCellCallback = postCellCallback,
         chanDescriptor = chanDescriptor,
         theme = theme,
-        postIndexedList = postIndexedList,
+        postIndexedList = organizedPostIndexedList,
         postDescriptors = postDescriptors,
         postCellDataWidthNoPaddings = postCellDataWidthNoPaddings,
         oldPostCellData = null
@@ -351,6 +380,7 @@ class ThreadCellData(
             .any { replyTo -> threadPostReplyMap[replyTo] == true },
           isTablet = isTablet,
           isSplitLayout = isSplitLayout,
+          replyLevel = replyLevelMap[postDescriptor] ?: 0
         )
 
         postCellData.postCellCallback = postCellCallback

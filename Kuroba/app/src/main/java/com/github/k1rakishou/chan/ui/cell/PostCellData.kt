@@ -84,7 +84,8 @@ data class PostCellData(
   val isSavedReply: Boolean,
   val isReplyToSavedReply: Boolean,
   val isTablet: Boolean,
-  val isSplitLayout: Boolean
+  val isSplitLayout: Boolean,
+  val replyLevel: Int = 0 // Added for threaded replies - indicates nesting level
 ) {
   var postCellCallback: PostCellInterface.PostCellCallback? = null
 
@@ -205,6 +206,17 @@ data class PostCellData(
   val repliesToThisPostText
     get() = _repliesToThisPostText.value()
 
+  /**
+   * Calculates the indentation padding based on the reply level for threaded replies
+   */
+  val indentationPaddingLeft: Int
+    get() = if (replyLevel > 0) {
+      // Each level adds a certain amount of indentation (e.g., 16dp per level)
+      replyLevel * 16 // This would be converted to pixels in the UI
+    } else {
+      0
+    }
+
   fun hashForAdapter(): Long {
     val repliesFromCount = post.repliesFromCount
     return (repliesFromCount.toLong() shl 32) + post.postNo() + post.postSubNo()
@@ -313,7 +325,8 @@ data class PostCellData(
       isSavedReply = isSavedReply,
       isReplyToSavedReply = isReplyToSavedReply,
       isTablet = isTablet,
-      isSplitLayout = isSplitLayout
+      isSplitLayout = isSplitLayout,
+      replyLevel = replyLevel
     ).also { newPostCellData ->
       newPostCellData.postCellCallback = postCellCallback
       newPostCellData.postTitlePrecalculated = postTitlePrecalculated

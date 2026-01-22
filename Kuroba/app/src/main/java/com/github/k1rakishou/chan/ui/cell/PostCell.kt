@@ -617,6 +617,16 @@ class PostCell @JvmOverloads constructor(
     this.isLongClickable = true
     val seenPostFadeOutAnimRemainingTimeMs = getSeenPostFadeOutAnimRemainingTime(postCellData)
 
+    // Apply indentation based on reply level for threaded replies
+    if (postCellData.replyLevel > 0) {
+      val indentationDp = postCellData.indentationPaddingLeft
+      val indentationPx = dp(indentationDp.toFloat()).toInt()
+      this.setPadding(indentationPx, this.paddingTop, this.paddingRight, this.paddingBottom)
+    } else {
+      // Reset to default padding if no indentation is needed
+      this.setPadding(dp(4f).toInt(), this.paddingTop, this.paddingRight, this.paddingBottom)
+    }
+
     startPostTitleTimeUpdateJob()
     bindBackgroundResources(postCellData)
     bindPostAttentionLabel(postCellData, seenPostFadeOutAnimRemainingTimeMs)
